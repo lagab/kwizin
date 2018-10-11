@@ -35,7 +35,12 @@ spring:
 # ===================================================================
 # Security
 # ===================================================================
-
+authentication:
+    jwt:
+        secret: my-secret-token-to-change-in-production
+        # Token is valid 24 hours
+        token-validity-in-seconds: 86400
+        token-validity-in-seconds-for-remember-me: 2592000
 # ===================================================================
 # To enable SSL, generate a certificate using:
 # keytool -genkey -alias cmanager -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 3650
