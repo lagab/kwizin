@@ -1,5 +1,6 @@
 package com.lagab.kwizin.security.config;
 
+import com.lagab.kwizin.config.ApplicationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -11,6 +12,10 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+import javax.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 /**
  * @author gabriel
  * @since 11/10/2018.
@@ -18,6 +23,20 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 @Configuration
 @EnableResourceServer
 public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter {
+
+    private final Base64.Encoder encoder = Base64.getEncoder();
+    private final ApplicationProperties applicationProperties;
+    private String secretKey;
+
+    public OAuth2ResourceServerConfig(ApplicationProperties applicationProperties){
+        this.applicationProperties = applicationProperties;
+    }
+    @PostConstruct
+    public void init() {
+        this.secretKey = encoder.encodeToString(applicationProperties.getSecurity().getAuthentication().getJwt()
+                .getSecret().getBytes(StandardCharsets.UTF_8));
+    }
+
     @Override
     public void configure(ResourceServerSecurityConfigurer config) {
         config.tokenServices(tokenServices());
@@ -31,7 +50,7 @@ public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter 
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey("123");
+        converter.setSigningKey(this.secretKey);
         return converter;
     }
 
