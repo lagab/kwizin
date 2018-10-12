@@ -12,8 +12,10 @@
 # ===================================================================
 logging:
     level:
-        #ROOT: DEBUG
+        #ROOT: WARN
         com.lagab.kwizin: DEBUG
+        org.springframework.security.oauth2: DEBUG
+        #org.springframework: TRACE
 
 spring:
     datasource:
@@ -33,14 +35,16 @@ spring:
         show-sql: true
 
 # ===================================================================
-# Security
+# Application
 # ===================================================================
-authentication:
-    jwt:
-        secret: my-secret-token-to-change-in-production
-        # Token is valid 24 hours
-        token-validity-in-seconds: 86400
-        token-validity-in-seconds-for-remember-me: 2592000
+application:
+    security:
+        authentication:
+            jwt:
+                secret: my-secret-token-to-change-in-production
+                # Token is valid 24 hours
+                token-validity-in-seconds: 86400
+                token-validity-in-seconds-for-remember-me: 2592000
 # ===================================================================
 # To enable SSL, generate a certificate using:
 # keytool -genkey -alias cmanager -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 3650
@@ -60,3 +64,6 @@ authentication:
 # ===================================================================
 server:
     port: 8081
+    error:
+        include-stacktrace: always
+        include-exception: true
