@@ -1,25 +1,113 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
-    <changeSet author="gabriel (generated)" id="1539265713838-1">
+    <property name="now" value="now()" dbms="mysql"/>
+    <changeSet author="gabriel (generated)" id="1539330651265-1">
+        <createTable tableName="app_authority">
+            <column name="name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-2">
+        <createTable tableName="app_user">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="app_userPK"/>
+            </column>
+            <column name="login" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(60)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(50)"/>
+            <column name="last_name" type="VARCHAR(50)"/>
+            <column name="email" type="VARCHAR(254)"/>
+            <column name="image_url" type="VARCHAR(256)"/>
+            <column name="activated" type="BIT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang_key" type="VARCHAR(6)"/>
+            <column name="activation_key" type="VARCHAR(20)"/>
+            <column name="reset_key" type="VARCHAR(20)"/>
+            <column name="created_by" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp"  defaultValueDate="${now}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reset_date" type="timestamp"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+
+        </createTable>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-3">
+        <createTable tableName="app_user_authority">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="authority_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-4">
         <createTable tableName="entity_audit_event">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints primaryKey="true" primaryKeyName="entity_audit_eventPK"/>
             </column>
-            <column name="action" type="VARCHAR(20)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="version" type="INT"/>
             <column name="entity_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="entity_type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="action" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
             <column name="entity_value" type="LONGTEXT"/>
+            <column name="version" type="INT"/>
             <column name="modified_by" type="VARCHAR(100)"/>
-            <column name="modified_date" type="TINYBLOB">
+            <column name="modified_date" type="timestamp">
                 <constraints nullable="false"/>
             </column>
         </createTable>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="00000000000001">
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/users.csv"
+                  separator=";"
+                  tableName="app_user">
+            <column name="activated" type="boolean"/>
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <dropDefaultValue tableName="app_user" columnName="created_date" columnDataType="datetime"/>
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/authorities.csv"
+                  separator=";"
+                  tableName="app_authority"/>
+
+        <loadData encoding="UTF-8"
+                  file="config/liquibase/users_authorities.csv"
+                  separator=";"
+                  tableName="app_user_authority"/>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-5">
+        <addPrimaryKey columnNames="user_id, authority_name" tableName="app_user_authority"/>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-6">
+        <addPrimaryKey columnNames="name" constraintName="app_authorityPK" tableName="app_authority"/>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-7">
+        <addUniqueConstraint columnNames="email" constraintName="UC_APP_USEREMAIL_COL" tableName="app_user"/>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-8">
+        <addUniqueConstraint columnNames="login" constraintName="UC_APP_USERLOGIN_COL" tableName="app_user"/>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-9">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="app_user_authority" constraintName="FKfocpjrj1tmhlu9vcfo47nqanp" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="app_user"/>
+    </changeSet>
+    <changeSet author="gabriel (generated)" id="1539330651265-10">
+        <addForeignKeyConstraint baseColumnNames="authority_name" baseTableName="app_user_authority" constraintName="FKi2mlqu6q3ct0fy19j1c83sym3" deferrable="false" initiallyDeferred="false" referencedColumnNames="name" referencedTableName="app_authority"/>
     </changeSet>
 </databaseChangeLog>
