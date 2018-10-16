@@ -58,22 +58,22 @@ public class UserDTO {
         // Empty constructor
     }
 
-    public UserDTO(UserDTO user) {
+    public UserDTO(User user) {
         this.id = user.getId();
         this.login = user.getLogin();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.email = user.getEmail();
-        //this.activated = user.getActivated();
+        this.activated = user.getActivated();
         this.imageUrl = user.getImageUrl();
         this.langKey = user.getLangKey();
         this.createdBy = user.getCreatedBy();
         this.createdDate = user.getCreatedDate();
         this.lastModifiedBy = user.getLastModifiedBy();
         this.lastModifiedDate = user.getLastModifiedDate();
-        /*this.authorities = user.getAuthorities().stream()
+        this.authorities = user.getAuthorities().stream()
                 .map(Authority::getName)
-                .collect(Collectors.toSet());*/
+                .collect(Collectors.toSet());
     }
 
     public Long getId() {
