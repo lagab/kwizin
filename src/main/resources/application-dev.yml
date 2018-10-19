@@ -39,6 +39,9 @@ spring:
 # ===================================================================
 application:
     security:
+        http:
+            auth-token-header-name: "Bearer"
+            auth-token: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTUzODc3ODA4OH0.CR4qxjoTM5QifFyf46R7rn9wTT5RDrIr_4pWUQI1-tLH_qaoueCGCu4Db4HC1fj8mmPysswr3qUp1yeoo0EeXg"
         authentication:
             jwt:
                 secret: my-secret-token-to-change-in-production

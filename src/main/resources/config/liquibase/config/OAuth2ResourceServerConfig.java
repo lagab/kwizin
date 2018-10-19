@@ -1,4 +1,4 @@
-package com.lagab.kwizin.security.config;
+package config.liquibase.config;
 
 import com.lagab.kwizin.config.ApplicationProperties;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +21,7 @@ import java.util.Base64;
  * @since 11/10/2018.
  */
 @Configuration
-@EnableResourceServer
+//@EnableResourceServer
 public class OAuth2ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     private final Base64.Encoder encoder = Base64.getEncoder();

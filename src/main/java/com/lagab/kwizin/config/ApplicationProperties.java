@@ -26,6 +26,13 @@ public class ApplicationProperties {
         private final ApplicationProperties.Security.Authentication authentication = new ApplicationProperties.Security.Authentication();
         private final ApplicationProperties.Security.RememberMe rememberMe = new ApplicationProperties.Security.RememberMe();
 
+        public Http getHttp() {
+            return http;
+        }
+
+        private final ApplicationProperties.Security.Http http = new ApplicationProperties.Security.Http();
+
+
         public Security() {
         }
 
@@ -149,6 +156,34 @@ public class ApplicationProperties {
             public void setClientSecret(String clientSecret) {
                 this.clientSecret = clientSecret;
             }
+        }
+
+        public static class Http {
+            public String getAuthTokenHeaderName() {
+                return authTokenHeaderName;
+            }
+
+            public void setAuthTokenHeaderName(String authTokenHeaderName) {
+                this.authTokenHeaderName = authTokenHeaderName;
+            }
+
+            public String getAuthToken() {
+                return authToken;
+            }
+
+            public void setAuthToken(String authToken) {
+                this.authToken = authToken;
+            }
+
+            private String authTokenHeaderName;
+            private String authToken;
+
+            public Http() {
+                this.authTokenHeaderName = com.lagab.kwizin.config.ApplicationDefaults.Security.Http.authTokenHeaderName;
+                this.authToken = com.lagab.kwizin.config.ApplicationDefaults.Security.Http.authToken;
+            }
+
+
         }
     }
 

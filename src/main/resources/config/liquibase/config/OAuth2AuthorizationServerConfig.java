@@ -1,4 +1,4 @@
-package com.lagab.kwizin.security.config;
+package config.liquibase.config;
 
 import com.lagab.kwizin.config.ApplicationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import java.util.Base64;
  * @since 11/10/2018.
  */
 @Configuration
-@EnableAuthorizationServer
+//@EnableAuthorizationServer
 public class OAuth2AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
     static final String CLIEN_ID = "admin";

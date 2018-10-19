@@ -2,20 +2,25 @@ package com.lagab.kwizin.security;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
+//import org.springframework.security.oauth2.provider.token.TokenStore;
+//import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
 
@@ -28,45 +33,41 @@ import java.util.Map;
  */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@Order(1)
+//@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
+    @Value("${application.security.http.auth-token-header-name}")
+    private String principalRequestHeader;
+
+    @Value("${application.security.http.auth-token}")
+    private String principalRequestValue;
 
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().passwordEncoder(passwordEncoder())
-                .withUser("admin")
-                .password(passwordEncoder().encode("admin"))
-                .roles("USER", "ADMIN");
+    protected void configure(HttpSecurity httpSecurity) throws Exception {
+        APIKeyAuthFilter filter = new APIKeyAuthFilter(principalRequestHeader);
+        filter.setAuthenticationManager(new AuthenticationManager() {
+
+            @Override
+            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+                String principal = (String) authentication.getPrincipal();
+                if (!principalRequestValue.equals(principal))
+                {
+                    throw new BadCredentialsException("The API key was not found or not the expected value.");
+                }
+                authentication.setAuthenticated(true);
+                return authentication;
+            }
+        });
+        httpSecurity.
+                antMatcher("/api/**").
+                csrf().disable().
+                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).
+                and().addFilter(filter).authorizeRequests().anyRequest().authenticated();
     }
 
-
-
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
-       http
-                .csrf()
-                .disable()
-                //.addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling()
-                .and()
-                .headers()
-                .frameOptions()
-                .disable()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .antMatchers("/oauth/token").permitAll();
-    }
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         String idForEncode = "bcrypt";
@@ -74,27 +75,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         encoderMap.put(idForEncode, new BCryptPasswordEncoder());
         return new DelegatingPasswordEncoder(idForEncode, encoderMap);
     }
-    @Bean
-    public TokenStore tokenStore() {
-        return new InMemoryTokenStore();
-    }
 
-    @Autowired
-    public void globalUserDetails(final AuthenticationManagerBuilder auth) throws Exception {
-        // @formatter:off
-        auth.inMemoryAuthentication()
-                .withUser("john").password(passwordEncoder().encode("123")).roles("USER").and()
-                .withUser("tom").password(passwordEncoder().encode("111")).roles("ADMIN").and()
-                .withUser("user1").password(passwordEncoder().encode("pass")).roles("USER").and()
-                .withUser("admin").password(passwordEncoder().encode("admin")).roles("ADMIN");
-    }// @formatter:on
-
-
-
-
-    /*@Autowired
-    public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService)
-                .passwordEncoder(encoder());
-    }*/
 }

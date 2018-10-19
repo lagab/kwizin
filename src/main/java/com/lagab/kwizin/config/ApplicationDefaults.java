@@ -24,5 +24,10 @@ public interface ApplicationDefaults {
             String clientId = null;
             String clientSecret = null;
         }
+
+        public interface Http {
+            String authTokenHeaderName = null;
+            String authToken = null;
+        }
     }
 }
