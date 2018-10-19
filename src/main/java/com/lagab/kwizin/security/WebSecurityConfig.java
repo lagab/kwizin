@@ -62,10 +62,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             }
         });
         httpSecurity.
-                antMatcher("/api/**").
-                csrf().disable().
-                sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).
-                and().addFilter(filter).authorizeRequests().anyRequest().authenticated();
+                antMatcher("/api/**")
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and().authorizeRequests().antMatchers("/swagger-ui.html","/webjars/**","/swagger-resources/**","/v2/api-docs/**").permitAll()
+                .and().addFilter(filter).authorizeRequests().anyRequest().authenticated();
     }
 
     @Bean
