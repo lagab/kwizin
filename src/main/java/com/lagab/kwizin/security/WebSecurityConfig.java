@@ -1,7 +1,9 @@
 package com.lagab.kwizin.security;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,16 +13,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.annotation.PostConstruct;
 
 /**
  * @author gabriel
@@ -31,15 +34,26 @@ import java.util.Map;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
 
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
+    private final UserDetailsService userDetailsService;
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().passwordEncoder(passwordEncoder())
-                .withUser("admin")
-                .password(passwordEncoder().encode("admin"))
-                .roles("USER", "ADMIN");
+    public WebSecurityConfig(AuthenticationManagerBuilder authenticationManagerBuilder, UserDetailsService userDetailsService){
+        this.authenticationManagerBuilder = authenticationManagerBuilder;
+        this.userDetailsService = userDetailsService;
+    }
+
+    @PostConstruct
+    public void init() {
+        try {
+            authenticationManagerBuilder
+                    .userDetailsService(userDetailsService)
+                    .passwordEncoder(passwordEncoder());
+        } catch (Exception e) {
+            throw new BeanInitializationException("Security configuration failed", e);
+        }
     }
 
 
@@ -49,7 +63,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
        http
                 .csrf()
                 .disable()
-                //.addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+                //.addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling()
                 .and()
                 .headers()
@@ -69,32 +83,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
     @Bean
     public PasswordEncoder passwordEncoder() {
-        String idForEncode = "bcrypt";
-        Map<String, PasswordEncoder> encoderMap = new HashMap<>();
-        encoderMap.put(idForEncode, new BCryptPasswordEncoder());
-        return new DelegatingPasswordEncoder(idForEncode, encoderMap);
+        return new BCryptPasswordEncoder();
     }
     @Bean
     public TokenStore tokenStore() {
         return new InMemoryTokenStore();
     }
 
-    @Autowired
-    public void globalUserDetails(final AuthenticationManagerBuilder auth) throws Exception {
-        // @formatter:off
-        auth.inMemoryAuthentication()
-                .withUser("john").password(passwordEncoder().encode("123")).roles("USER").and()
-                .withUser("tom").password(passwordEncoder().encode("111")).roles("ADMIN").and()
-                .withUser("user1").password(passwordEncoder().encode("pass")).roles("USER").and()
-                .withUser("admin").password(passwordEncoder().encode("admin")).roles("ADMIN");
-    }// @formatter:on
-
-
-
-
-    /*@Autowired
-    public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService)
-                .passwordEncoder(encoder());
-    }*/
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/management/**", config);
+        source.registerCorsConfiguration("/v2/api-docs", config);
+        source.registerCorsConfiguration("/browser/**", config);
+        return new CorsFilter(source);
+    }
 }

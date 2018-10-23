@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
  * Properties specific to App
  * Properties are configured in the application.yml file.
  */
-@ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
+@ConfigurationProperties(prefix = "application", ignoreUnknownFields = true)
 public class ApplicationProperties {
     private final ApplicationProperties.Security security = new ApplicationProperties.Security();
     
